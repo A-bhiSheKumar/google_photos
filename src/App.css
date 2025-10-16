@@ -1,58 +1,71 @@
-body {
-  font-family: Arial, sans-serif;
-  background: linear-gradient(135deg, #f0f8ff, #ffffff);
-  margin: 0;
-  padding: 0;
+/* App.css - mobile-first simple Google Photos-like look */
+
+:root {
+  --bg: #ffffff;
+  --accent: #1a73e8;
+  --muted: #6b7280;
+  --card-shadow: 0 6px 24px rgba(16,24,40,0.08);
 }
 
-.container {
-  display: flex;
-  height: 100vh;
-  align-items: center;
-  justify-content: center;
-}
+* { box-sizing: border-box; }
+html,body,#root { height: 100%; margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial; background: #f7f8fb; color: #111827; }
 
-.card {
+.mobile-shell { max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; background: linear-gradient(180deg,#fff,#f7f8fb); }
+
+.topbar { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom: 1px solid #e6e9ef; background: white; }
+.brand { font-weight:700; font-size:18px; color:var(--accent); }
+.sub { font-size:12px; color:var(--muted); }
+
+.landing { padding: 20px; flex: 1 1 auto; }
+
+.hero { text-align:center; margin-top: 28px; }
+.hero-title { font-size:20px; font-weight:600; margin-bottom:8px; }
+.hero-sub { color:var(--muted); margin-bottom:18px; }
+
+.cta {
+  display:inline-block;
+  background:var(--accent);
+  color:white;
+  border:none;
+  padding:12px 22px;
+  border-radius:999px;
+  font-weight:600;
+  font-size:16px;
+  cursor:pointer;
+  box-shadow: 0 6px 18px rgba(26,115,232,0.18);
+}
+.cta[disabled] { opacity: 0.7; cursor: default; }
+
+.loader-wrap { margin-top: 18px; display:flex; flex-direction:column; align-items:center; gap:10px; }
+
+.spinner {
+  width:48px; height:48px; border-radius:50%;
+  border:4px solid rgba(0,0,0,0.08);
+  border-top-color: var(--accent);
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.progress { width: 84%; height:8px; background: #e6e9ef; border-radius:999px; overflow:hidden; }
+.progress-bar { height:100%; background: linear-gradient(90deg,var(--accent),#0b63d6); width:0%; transition: width 220ms linear; border-radius:999px; }
+
+.loader-text { font-size:13px; color:var(--muted); }
+
+.note { margin-top:10px; color:#9b1c1c; font-size:13px; }
+
+.mobile-footer { margin-top:26px; color:var(--muted); font-size:13px; text-align:center; }
+
+.photos-grid {
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap:6px;
+  padding: 12px;
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  padding: 2rem;
-  max-width: 400px;
-  width: 100%;
-  text-align: center;
 }
+.photo-card img { width:100%; height:100%; object-fit:cover; display:block; border-radius:6px; box-shadow: var(--card-shadow); }
 
-.logo {
-  width: 60px;
-  height: 60px;
-  background: #2563eb;
-  border-radius: 50%;
-  color: white;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-  margin: 0 auto 1rem;
-}
-
-button {
-  background: #2563eb;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 0.8rem 1.5rem;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-button:hover {
-  background: #1e40af;
-}
-
-.footer {
-  margin-top: 1rem;
-  color: gray;
-  font-size: 0.8rem;
+/* larger screens */
+@media (min-width:640px) {
+  .mobile-shell { max-width:720px; }
+  .photos-grid { gap:12px; grid-template-columns: repeat(4, 1fr); padding:16px; }
 }
